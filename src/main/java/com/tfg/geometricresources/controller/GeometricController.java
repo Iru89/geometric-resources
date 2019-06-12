@@ -1,11 +1,14 @@
 package com.tfg.geometricresources.controller;
 
-import com.tfg.geometricresources.model.dto.AddFigureDto;
+import com.tfg.geometricresources.model.MyUserDetails;
+import com.tfg.geometricresources.model.dto.FigureDto;
 import com.tfg.geometricresources.model.dto.IdDto;
 import com.tfg.geometricresources.service.FigureService;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,20 +23,30 @@ public class GeometricController {
 
     @RequestMapping(value = "/figure", method = RequestMethod.POST)
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity addFigure(@RequestBody AddFigureDto addFigureDto){
-        return figureService.add(addFigureDto.getFigure(), addFigureDto.getUserId());
+    public ResponseEntity addFigure(@RequestBody FigureDto figureDto){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+        ObjectId userId = myUserDetails.getId();
+        return figureService.add(figureDto.getFigure(), userId);
     }
 
-    @RequestMapping(value = "/figures", method = RequestMethod.POST)
+    @RequestMapping(value = "/figure", method = RequestMethod.GET)
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity getList(@RequestBody IdDto userId){
-        return figureService.getList(new ObjectId(userId.getId()));
+    public ResponseEntity getList(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+        ObjectId userId = myUserDetails.getId();
+        return figureService.getList(userId);
     }
 
     @RequestMapping(value = "/figure", method = RequestMethod.DELETE)
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity deleteFigure(@RequestBody IdDto idFigure){
-        return figureService.deleteFigure(new ObjectId(idFigure.getId()));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+        ObjectId userId = myUserDetails.getId();
+        ObjectId figureId = new ObjectId(idFigure.getId());
+        return figureService.deleteFigure(figureId, userId);
     }
 
 

@@ -1,16 +1,14 @@
 package com.tfg.geometricresources.service;
 
 import com.tfg.geometricresources.exception.IdException;
-import com.tfg.geometricresources.model.*;
 import com.tfg.geometricresources.model.Figure;
+import com.tfg.geometricresources.model.UserResources;
 import com.tfg.geometricresources.model.dto.IdDto;
 import com.tfg.geometricresources.model.dto.IdDto.IdDtoBuilder;
 import com.tfg.geometricresources.repository.UserRepository;
 import com.tfg.geometricresources.repository.UserRepositoryImp;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,20 +52,17 @@ public class FigureService {
         }
     }
 
-    public ResponseEntity deleteFigure(ObjectId idFigure) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+    public ResponseEntity deleteFigure(ObjectId figureId, ObjectId userId) {
 
         try {
-            UserResources user = userRepository.findById(myUserDetails.getId()).orElseThrow(
-                    () -> new IdException("UserResources not found with id : " + myUserDetails.getId().toHexString())
+            UserResources user = userRepository.findById(userId).orElseThrow(
+                    () -> new IdException("UserResources not found with id : " + userId.toHexString())
             );
 
             List<Figure> figureList = user.getFigures();
             List<Figure> newFigureList = figureList
                     .stream()
-                    .filter(figure -> !figure.getId().equals(idFigure.toHexString()))
+                    .filter(figure -> !figure.getId().equals(figureId.toHexString()))
                     .collect(Collectors.toList());
 
             user.setFigures(newFigureList);
@@ -75,7 +70,7 @@ public class FigureService {
 
             IdDto idDto = IdDtoBuilder
                     .builder()
-                    .withId(idFigure)
+                    .withId(figureId)
                     .build();
 
             return ResponseEntity.ok().body(idDto);
